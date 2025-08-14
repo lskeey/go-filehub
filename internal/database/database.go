@@ -17,7 +17,7 @@ func Connect(cfg config.Config) {
 	var err error
 
 	// Data Source Name (DSN) for connecting to PostgreSQL
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		cfg.DBHost,
 		cfg.DBUser,
 		cfg.DBPassword,

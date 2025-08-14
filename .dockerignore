@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+
+# Go modules cache
+vendor/
+
+# Local env file (can be ignored if using compose env_file)
+.env
+
+# Docker files
+Dockerfile
+docker-compose.yml
+
+# README
+README.md
+
+# Uploads and docs
+/uploads/
+/docs/

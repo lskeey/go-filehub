@@ -16,6 +16,20 @@ func NewFileHandler(s *service.FileService) *FileHandler {
 	return &FileHandler{fileService: s}
 }
 
+// UploadFile handles the file upload request.
+//
+// @Summary Upload a file
+// @Description Uploads a file for the authenticated user. Max file size is 10MB.
+// @Tags files
+// @Accept  multipart/form-data
+// @Produce  json
+// @Param   file  formData  file  true  "File to upload"
+// @Success 200   {object}  UploadSuccessResponse
+// @Failure 400   {object}  ErrorResponse
+// @Failure 401   {object}  ErrorResponse
+// @Failure 500   {object}  ErrorResponse
+// @Security BearerAuth
+// @Router /files/upload [post]
 func (h *FileHandler) UploadFile(c *gin.Context) {
 	// Retrieve the file from the form data
 	fileHeader, err := c.FormFile("file")
@@ -52,6 +66,17 @@ func (h *FileHandler) UploadFile(c *gin.Context) {
 	})
 }
 
+// ListFiles handles listing all files for the authenticated user.
+//
+// @Summary List user's files
+// @Description Retrieves a list of all files uploaded by the authenticated user.
+// @Tags files
+// @Produce  json
+// @Success 200   {object}  ListFilesResponse
+// @Failure 401   {object}  ErrorResponse
+// @Failure 500   {object}  ErrorResponse
+// @Security BearerAuth
+// @Router /files [get]
 func (h *FileHandler) ListFiles(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
@@ -64,6 +89,19 @@ func (h *FileHandler) ListFiles(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": files})
 }
 
+// DownloadFile handles serving a specific file for download.
+//
+// @Summary Download a file
+// @Description Downloads a specific file by its ID. The user must own the file.
+// @Tags files
+// @Produce  application/octet-stream
+// @Param   id    path      int  true  "File ID"
+// @Success 200   {file}    file
+// @Failure 400   {object}  ErrorResponse
+// @Failure 403   {object}  ErrorResponse
+// @Failure 404   {object}  ErrorResponse
+// @Security BearerAuth
+// @Router /files/{id}/download [get]
 func (h *FileHandler) DownloadFile(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
@@ -89,6 +127,19 @@ func (h *FileHandler) DownloadFile(c *gin.Context) {
 	c.FileAttachment(file.S3Path, file.FileName)
 }
 
+// DeleteFile handles the deletion of a specific file.
+//
+// @Summary Delete a file
+// @Description Deletes a specific file by its ID. The user must own the file.
+// @Tags files
+// @Produce  json
+// @Param   id    path      int  true  "File ID"
+// @Success 200   {object}  SuccessResponse
+// @Failure 400   {object}  ErrorResponse
+// @Failure 403   {object}  ErrorResponse
+// @Failure 404   {object}  ErrorResponse
+// @Security BearerAuth
+// @Router /files/{id} [delete]
 func (h *FileHandler) DeleteFile(c *gin.Context) {
 	userID, _ := c.Get("userID")
 

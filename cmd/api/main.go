@@ -13,8 +13,31 @@ import (
 	"github.com/lskeey/go-filehub/internal/middleware"
 	"github.com/lskeey/go-filehub/internal/repository"
 	"github.com/lskeey/go-filehub/internal/service"
+
+	docs "github.com/lskeey/go-filehub/docs"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title Go FileHub
+// @version 1.0
+// @description This is a simple API for a FileHub project.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and a JWT token.
 func main() {
 	// 1. Load Configuration
 	cfg, err := config.LoadConfig()
@@ -49,6 +72,8 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	docs.SwaggerInfo.BasePath = "/api/v1"
+
 	// 7. Setup Routes
 	api := r.Group("/api/v1")
 	{
@@ -73,6 +98,8 @@ func main() {
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// 8. Run Server
 	serverAddr := fmt.Sprintf(":%s", cfg.AppPort)

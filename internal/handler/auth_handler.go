@@ -33,6 +33,18 @@ type LoginRequest struct {
 
 var validate = validator.New()
 
+// Register handles the user registration request.
+//
+// @Summary Register a new user
+// @Description Creates a new user account with email and password.
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user  body      RegisterRequest  true  "User Registration Info"
+// @Success 201   {object}  SuccessResponse
+// @Failure 400   {object}  ErrorResponse
+// @Failure 500   {object}  ErrorResponse
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -59,6 +71,18 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
+// Login handles the user login request.
+//
+// @Summary Log in a user
+// @Description Authenticates a user and returns a JWT token.
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param   user  body      LoginRequest  true  "User Login Info"
+// @Success 200   {object}  LoginResponse
+// @Failure 400   {object}  ErrorResponse
+// @Failure 401   {object}  ErrorResponse
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
