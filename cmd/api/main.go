@@ -1,15 +1,16 @@
-// File: cmd/api/main.go
-
 package main
 
 import (
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/lskeey/go-filehub/config"
 	"github.com/lskeey/go-filehub/internal/database"
 	"github.com/lskeey/go-filehub/internal/handler"
+	"github.com/lskeey/go-filehub/internal/middleware"
 	"github.com/lskeey/go-filehub/internal/repository"
 	"github.com/lskeey/go-filehub/internal/service"
 )
@@ -25,31 +26,55 @@ func main() {
 	database.Connect(cfg)
 	db := database.DB
 
-	// 3. Initialize Layers (Dependency Injection)
+	// 3. Initialize Repositories
 	userRepo := repository.NewUserRepository(db)
+	fileRepo := repository.NewFileRepository(db)
+
+	// 4. Initialize Services
 	authService := service.NewAuthService(userRepo, cfg)
+	fileService := service.NewFileService(fileRepo)
+
+	// 5. Initialize Handlers
 	authHandler := handler.NewAuthHandler(authService)
+	fileHandler := handler.NewFileHandler(fileService)
 
-	// 4. Initialize Gin Server
+	// 6. Initialize Gin Server
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://127.0.0.1:5500"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
-	// 5. Setup Routes
+	// 7. Setup Routes
 	api := r.Group("/api/v1")
 	{
+		// Auth routes
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
 		}
+
+		// File routes (protected by auth middleware)
+		files := api.Group("/files")
+		files.Use(middleware.AuthMiddleware(cfg.JWTSecretKey))
+		{
+			files.POST("/upload", fileHandler.UploadFile)
+			files.GET("", fileHandler.ListFiles)
+			files.GET("/:id/download", fileHandler.DownloadFile)
+			files.DELETE("/:id", fileHandler.DeleteFile)
+		}
 	}
 
 	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+		c.JSON(200, gin.H{"message": "pong"})
 	})
 
-	// 6. Run Server
+	// 8. Run Server
 	serverAddr := fmt.Sprintf(":%s", cfg.AppPort)
 	log.Printf("Server is running at %s", serverAddr)
 	if err := r.Run(serverAddr); err != nil {
